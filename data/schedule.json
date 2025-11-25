@@ -1,0 +1,30 @@
+[
+    {
+        "date": "2024-11-25",
+        "type": "Easy",
+        "distance": 8,
+        "description": "가볍게 조깅, 컨디션 점검",
+        "completed": false
+    },
+    {
+        "date": "2024-11-27",
+        "type": "Interval",
+        "distance": 10,
+        "description": "400m x 12회, 휴식 90초",
+        "completed": false
+    },
+    {
+        "date": "2024-11-30",
+        "type": "Long Run",
+        "distance": 20,
+        "description": "주말 LSD, 페이스 5:30 유지",
+        "completed": false
+    },
+    {
+        "date": "2024-12-02",
+        "type": "Easy",
+        "distance": 6,
+        "description": "회복 러닝",
+        "completed": false
+    }
+]

@@ -5,9 +5,13 @@ import {
     calculateVDOT,
     getTrainingPaces,
 } from "@/lib/formulas";
+import { getCalendarData } from "@/lib/scheduler"; // Phase 3: 스케줄러 로직
+
+// UI Components
 import { ACWRCard } from "@/components/dashboard/acwr-card";
 import { VDOTCard } from "@/components/dashboard/vdot-card";
 import { WeeklyChart } from "@/components/charts/weekly-chart";
+import { TrainingCalendar } from "@/components/calendar/training-calendar"; // Phase 3: 캘린더 컴포넌트
 import {
     Card,
     CardContent,
@@ -23,42 +27,49 @@ const toKm = (meters: number) => (meters / 1000).toFixed(1);
 
 export default async function Dashboard() {
     // 1. 데이터 패칭 (Fetching)
-    // 차트 데이터를 위해 최근 12주치 데이터가 필요하므로 넉넉히 100개를 가져옵니다.
-    let activities: any[] = [];
+    // 차트와 캘린더 매칭을 위해 최근 데이터를 넉넉히 가져옵니다.
+    let activities = [];
     try {
         activities = await getStravaActivities(100);
     } catch (error) {
         console.error("Failed to fetch activities:", error);
-        // 에러 발생 시 빈 배열로 진행 (UI가 깨지지 않도록)
+        // 에러 발생 시 UI가 깨지지 않도록 빈 배열로 진행
     }
 
-    // 2. 데이터 분석 (Analytics)
+    // 2. 데이터 분석 (Analytics - Phase 1 & 2)
 
-    // A. 부상 방지 (ACWR) 계산
+    // A. 부상 방지 (ACWR)
     const acwrData = calculateACWR(activities);
 
-    // B. 주간 차트 데이터 (Weekly Stats) 생성
+    // B. 주간 차트 데이터
     const weeklyData = getWeeklyStats(activities);
 
-    // C. VDOT 및 훈련 페이스 계산
-    // 최근 6주(약 42일) 데이터만 사용하여 현재의 폼을 반영합니다.
+    // C. VDOT 및 훈련 페이스 (최근 6주 데이터 기준)
     const recentActivities = activities.filter((a) => {
         const diff =
             (new Date().getTime() - new Date(a.start_date).getTime()) /
             (1000 * 60 * 60 * 24);
         return diff <= 42;
     });
-
     const best5kMin = findBestEffort(recentActivities);
     const vdotScore = calculateVDOT(best5kMin);
     const paces = getTrainingPaces(vdotScore);
 
-    // D. 기본 통계 (누적 거리, 최근 활동)
+    // D. 기본 통계
     const totalDistance = activities.reduce(
         (acc, cur) => acc + cur.distance,
         0
     );
     const lastRun = activities[0];
+
+    // 3. 스케줄러 데이터 생성 (Scheduler - Phase 3)
+    const today = new Date();
+    // 현재 연도/월을 기준으로 계획(JSON)과 활동(Strava)을 병합
+    const calendarData = await getCalendarData(
+        today.getFullYear(),
+        today.getMonth() + 1,
+        activities
+    );
 
     return (
         <main className="min-h-screen bg-zinc-50/50 p-8">
@@ -86,13 +97,13 @@ export default async function Dashboard() {
 
             {/* 상단 핵심 지표 그리드 (KPI Grid) */}
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                {/* 1. ACWR 카드 (부상 방지) */}
+                {/* 1. ACWR 카드 */}
                 <ACWRCard data={acwrData} />
 
-                {/* 2. VDOT 카드 (러닝 능력, 2칸 차지) */}
+                {/* 2. VDOT 카드 (2칸 차지) */}
                 <VDOTCard vdot={vdotScore} paces={paces} />
 
-                {/* 3. 누적 주행 거리 카드 */}
+                {/* 3. 누적 거리 카드 */}
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-bold text-zinc-700">
@@ -110,7 +121,7 @@ export default async function Dashboard() {
                     </CardContent>
                 </Card>
 
-                {/* 4. 가장 최근 활동 카드 */}
+                {/* 4. 최근 활동 카드 */}
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-bold text-zinc-700">
@@ -142,10 +153,10 @@ export default async function Dashboard() {
 
             {/* 메인 차트 및 리스트 섹션 */}
             <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-7">
-                {/* 1. 주간 마일리지 차트 (4칸 차지) */}
+                {/* 주간 마일리지 차트 (4칸) */}
                 <WeeklyChart data={weeklyData} />
 
-                {/* 2. 최근 활동 로그 리스트 (3칸 차지) */}
+                {/* 최근 활동 로그 (3칸) */}
                 <Card className="col-span-1 md:col-span-2 lg:col-span-3">
                     <CardHeader>
                         <CardTitle className="text-lg font-bold text-zinc-800">
@@ -186,7 +197,7 @@ export default async function Dashboard() {
                             ))}
                             {activities.length === 0 && (
                                 <p className="text-sm text-zinc-500 text-center py-4">
-                                    표시할 활동 데이터가 없습니다.
+                                    표시할 데이터가 없습니다.
                                 </p>
                             )}
                         </div>
@@ -194,13 +205,17 @@ export default async function Dashboard() {
                 </Card>
             </div>
 
-            {/* 시스템 상태/디버그 섹션 (하단) */}
+            {/* 훈련 캘린더 섹션 (Phase 3 New!) */}
+            <div className="mt-6">
+                <TrainingCalendar data={calendarData} currentDate={today} />
+            </div>
+
+            {/* 시스템 상태/디버그 섹션 */}
             <div className="mt-8 p-4 bg-zinc-100 rounded-lg">
                 <p className="text-xs font-mono text-zinc-500">
-                    [System Check] 데이터 로드: {activities.length}개 성공. 단기
-                    부하(Acute): {acwrData.acuteLoad.toFixed(2)}km. 장기
-                    부하(Chronic): {acwrData.chronicLoad.toFixed(2)}km. VDOT:{" "}
-                    {vdotScore}.
+                    [System Check] Strava Activities: {activities.length}{" "}
+                    loaded. ACWR Status: {acwrData.status}. VDOT: {vdotScore}.
+                    Calendar Sync: Active.
                 </p>
             </div>
         </main>

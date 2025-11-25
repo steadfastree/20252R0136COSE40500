@@ -22,3 +22,20 @@ export interface ActivityStats {
     totalDistance: number; // km
     totalTime: number; // minutes
 }
+
+export interface TrainingPlan {
+    date: string; // YYYY-MM-DD
+    type: string; // Easy, Interval, Tempo, Long Run, Race, etc.
+    distance: number; // 목표 거리 (km)
+    description?: string; // 메모
+    completed?: boolean; // (Optional) 수동 체크용, 실제로는 API 매칭으로 판별
+}
+
+// 캘린더 렌더링을 위한 병합된 데이터 타입
+export interface CalendarDay {
+    date: string; // 날짜
+    isCurrentMonth: boolean; // 현재 달력 뷰에 속하는지
+    plan?: TrainingPlan; // 계획 데이터 (있으면)
+    activity?: StravaActivity; // 실제 활동 데이터 (있으면)
+    status: "run-success" | "run-missed" | "run-bonus" | "rest" | "rest-bonus"; // 상태 판별 결과
+}
