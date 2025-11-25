@@ -1,89 +1,168 @@
 import { StravaActivity } from "./types";
 
-// 1. Riegel's Formula (시간 예측)
-// t1: 기준 기록(초), d1: 기준 거리(m), d2: 목표 거리(m)
-export const predictTime = (t1: number, d1: number, d2: number) => {
-    return t1 * Math.pow(d2 / d1, 1.06);
+// =====================================================================
+// 1. Jack Daniels VDOT Core Logic (Physiological Formulas)
+// =====================================================================
+
+// 속도(분속, m/min)에 따른 산소 소비량(VO2) 계산
+const getVO2 = (velocity: number): number => {
+    return 0.182258 * velocity + 0.000104 * velocity * velocity - 4.6;
 };
 
-// 2. VDOT Calculation (Jack Daniels 근사식)
-// 5km 기록(분)을 입력받아 VDOT 점수를 반환
-export const calculateVDOT = (fiveKmTimeMinutes: number): number => {
-    // VDOT 근사 공식을 사용하거나, 5k 기록 대비 VDOT 테이블 매핑 로직을 사용합니다.
-    // 여기서는 5km 기록(분)과 VDOT 간의 일반적인 상관관계를 코드로 구현합니다.
-    // (공식: VDOT ≈ distance(m) / time(min) ... 복잡하므로 5k 기준 역산 식 사용)
-
-    if (fiveKmTimeMinutes <= 0) return 0;
-
-    // 간단한 회귀식 (5k Time vs VDOT)
-    // 예: 20분 -> VDOT 49.8, 25분 -> VDOT 38, 30분 -> VDOT 30
-    // VDOT = -1.87 * Time(min) + 86 (대략적인 선형 근사 - 특정 구간에서 유효)
-    // 더 정확한 계산을 위해 Daniels 공식의 단순화 버전을 적용:
-
-    const velocity = 5000 / fiveKmTimeMinutes; // meters per minute
-    const percentMax =
+// 운동 시간(분)에 따른 %VO2max (지속 가능률) 계산
+// 시간이 길어질수록 최대 산소 섭취량의 적은 비율만 사용할 수 있음 (지수 함수적 감쇠)
+const getPercentMax = (minutes: number): number => {
+    return (
         0.8 +
-        0.1894393 * Math.exp(-0.012778 * fiveKmTimeMinutes) +
-        0.2989558 * Math.exp(-0.1932605 * fiveKmTimeMinutes);
-    const vo2Cost =
-        0.182258 * velocity + 0.000104 * Math.pow(velocity, 2) - 4.6;
-
-    return Number((vo2Cost / percentMax).toFixed(1));
+        0.1894393 * Math.exp(-0.012778 * minutes) +
+        0.2989558 * Math.exp(-0.1932605 * minutes)
+    );
 };
 
-// 3. 훈련 페이스 계산 (min/km)
+// 레이스 기록(분) -> VDOT 변환
+export const calculateVDOT = (
+    timeMinutes: number,
+    distanceMeters: number
+): number => {
+    if (timeMinutes <= 0) return 0;
+    const velocity = distanceMeters / timeMinutes; // m/min
+    const vo2 = getVO2(velocity);
+    const percentMax = getPercentMax(timeMinutes);
+
+    return Number((vo2 / percentMax).toFixed(1));
+};
+
+// =====================================================================
+// 2. VDOT Reverse Calculation (VDOT -> Time) using Binary Search
+// =====================================================================
+
+// VDOT 점수로 특정 거리의 예상 기록(분)을 역산
+// 공식이 복잡하여 역함수를 구할 수 없으므로, 이진 탐색(Binary Search)으로 근사값을 찾음
+const getTimeFromVDOT = (vdot: number, distanceMeters: number): number => {
+    let low = 1; // 1분
+    let high = 1500; // 1500분 (약 25시간) - 풀코스 걷는 경우까지 커버
+    let epsilon = 0.0001; // 오차 범위
+    let iterations = 0;
+
+    while (high - low > epsilon && iterations < 100) {
+        const mid = (low + high) / 2;
+        const estimatedVDOT = calculateVDOT(mid, distanceMeters);
+
+        if (estimatedVDOT < vdot) {
+            // 예상 VDOT이 목표보다 낮음 -> 더 높은 점수를 내려면 시간이 단축되어야 함
+            high = mid;
+        } else {
+            low = mid;
+        }
+        iterations++;
+    }
+
+    return (low + high) / 2;
+};
+
+// 시간 포맷팅 헬퍼 (초 -> HH:MM:SS or MM:SS)
+const formatTime = (totalSeconds: number) => {
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = Math.floor(totalSeconds % 60);
+
+    if (h > 0) {
+        return `${h}:${m.toString().padStart(2, "0")}:${s
+            .toString()
+            .padStart(2, "0")}`;
+    }
+    return `${m}:${s.toString().padStart(2, "0")}`;
+};
+
+// =====================================================================
+// 3. Exported Functions for UI
+// =====================================================================
+
+// A. 레이스 기록 예측 (New!)
+export const getRacePredictions = (vdot: number) => {
+    if (vdot === 0) {
+        return { "5k": "-", "10k": "-", Half: "-", Full: "-" };
+    }
+
+    const predict = (dist: number) => {
+        const minutes = getTimeFromVDOT(vdot, dist);
+        return formatTime(minutes * 60);
+    };
+
+    return {
+        "5k": predict(5000),
+        "10k": predict(10000),
+        Half: predict(21097.5),
+        Full: predict(42195),
+    };
+};
+
+// B. 훈련 페이스 계산
+// Jack Daniels 테이블의 회귀식을 사용하여 VDOT별 적정 훈련 페이스(초/km) 도출
 export const getTrainingPaces = (vdot: number) => {
-    // VDOT 기반 페이스 계수 (Jack Daniels Intensity)
-    // Easy: 59-74% VO2max -> 대략 VDOT의 역수 관계
-    // 정확한 공식보다는 VDOT 테이블 참조가 좋으나, 여기서는 VDOT별 기준 페이스를 계산합니다.
+    if (vdot === 0) {
+        return {
+            Easy: "-",
+            Marathon: "-",
+            Threshold: "-",
+            Interval: "-",
+            Repetition: "-",
+        };
+    }
 
-    // 편의상 5k Race Pace(min/km)를 먼저 구하고 비율을 곱합니다.
-    // 5k Pace(초) ≈ 1000m / (Velocity at VDOT)
-    // 하지만 계산이 복잡하므로 VDOT 점수 하나당 5k 페이스가 약 3~4초 빨라지는 규칙을 적용합니다.
-    // VDOT 30: 5k Pace 6:00/km
-    // VDOT 40: 5k Pace 5:00/km
-    // VDOT 50: 5k Pace 4:00/km
-    // VDOT 60: 5k Pace 3:25/km
+    // y = ax^b (Power Law Regression based on VDOT tables)
+    const getPacePerKm = (v: number, type: "E" | "M" | "T" | "I" | "R") => {
+        let seconds = 0;
+        switch (type) {
+            case "E":
+                seconds = 3985 * Math.pow(v, -0.65);
+                break; // Easy (조깅)
+            case "M":
+                seconds = 2850 * Math.pow(v, -0.59);
+                break; // Marathon (마라톤)
+            case "T":
+                seconds = 2500 * Math.pow(v, -0.58);
+                break; // Threshold (역치)
+            case "I":
+                seconds = 2150 * Math.pow(v, -0.56);
+                break; // Interval (인터벌)
+            case "R":
+                seconds = 1900 * Math.pow(v, -0.54);
+                break; // Repetition (반복)
+        }
+        return seconds;
+    };
 
-    // Reference VDOT 45 => 5k Pace 4:30/km (270s)
-    // Pace Factor = 270s * (45 / CurrentVDOT) (단순 반비례 근사)
-
-    const refVDOT = 45;
-    const ref5kPaceSeconds = 270; // 4:30/km
-
-    // VDOT이 높을수록 시간이 줄어듬 (반비례보다 약간 더 가파름 - 지수함수적)
-    const basePace = ref5kPaceSeconds * Math.pow(refVDOT / vdot, 0.95);
-
-    const formatPace = (seconds: number) => {
-        const m = Math.floor(seconds / 60);
-        const s = Math.floor(seconds % 60);
+    const fmt = (sec: number) => {
+        const m = Math.floor(sec / 60);
+        const s = Math.floor(sec % 60);
         return `${m}:${s.toString().padStart(2, "0")}`;
     };
 
     return {
-        Easy: formatPace(basePace * 1.25), // E-Pace
-        Marathon: formatPace(basePace * 1.1), // M-Pace
-        Threshold: formatPace(basePace * 1.04), // T-Pace
-        Interval: formatPace(basePace * 0.96), // I-Pace
-        Repetition: formatPace(basePace * 0.9), // R-Pace
+        Easy: fmt(getPacePerKm(vdot, "E")),
+        Marathon: fmt(getPacePerKm(vdot, "M")),
+        Threshold: fmt(getPacePerKm(vdot, "T")),
+        Interval: fmt(getPacePerKm(vdot, "I")),
+        Repetition: fmt(getPacePerKm(vdot, "R")),
     };
 };
 
-// 4. Best Performance Finder
+// C. 최고의 VDOT 추출 (Best Performance Finder)
 export const findBestEffort = (activities: StravaActivity[]) => {
-    let best5kTime = Infinity;
+    let bestVDOT = 0;
 
     activities.forEach((act) => {
-        // 너무 짧은 거리(3km 미만)나 에러 데이터 제외
+        // 3km 미만 거리나 데이터 오류 제외
         if (act.distance < 3000 || act.moving_time <= 0) return;
 
-        // Riegel 공식을 이용해 모든 달리기를 5k 기록으로 환산
-        const projected5k = predictTime(act.moving_time, act.distance, 5000);
+        // 각 활동의 거리와 시간으로 VDOT을 직접 계산하여 최대값 갱신
+        const currentVDOT = calculateVDOT(act.moving_time / 60, act.distance);
 
-        if (projected5k < best5kTime) {
-            best5kTime = projected5k;
+        if (currentVDOT > bestVDOT) {
+            bestVDOT = currentVDOT;
         }
     });
 
-    return best5kTime === Infinity ? 0 : best5kTime / 60; // 분 단위 반환
+    return bestVDOT;
 };
