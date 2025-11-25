@@ -76,3 +76,57 @@ export function calculateACWR(activities: StravaActivity[]): ACWRResult {
         color,
     };
 }
+
+// ... 기존 import 및 calculateACWR 함수 유지
+
+import {
+    format,
+    startOfWeek,
+    endOfWeek,
+    eachWeekOfInterval,
+    subWeeks,
+    isSameWeek,
+} from "date-fns";
+import { ko } from "date-fns/locale"; // 한국어 날짜 포맷
+
+export interface WeeklyStat {
+    name: string; // X축 라벨 (예: "10.24")
+    distance: number; // 주간 합계 거리 (km)
+    count: number; // 주간 달리기 횟수
+    fullDate: string; // 툴팁용 전체 날짜 범위
+}
+
+export function getWeeklyStats(activities: StravaActivity[]): WeeklyStat[] {
+    const today = new Date();
+    const startOfCurrentWeek = startOfWeek(today, { weekStartsOn: 1 }); // 월요일 시작
+
+    // 최근 12주 구간 생성
+    const weeks = eachWeekOfInterval({
+        start: subWeeks(startOfCurrentWeek, 11), // 12주 전부터
+        end: startOfCurrentWeek,
+    });
+
+    return weeks.map((weekStart) => {
+        const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
+
+        // 해당 주에 속하는 활동 필터링
+        const weeklyActivities = activities.filter((act) =>
+            isSameWeek(new Date(act.start_date), weekStart, { weekStartsOn: 1 })
+        );
+
+        const sumDistance = weeklyActivities.reduce(
+            (acc, act) => acc + act.distance,
+            0
+        );
+
+        return {
+            name: format(weekStart, "M.d"), // X축: "11.25" 형태
+            distance: Number((sumDistance / 1000).toFixed(1)), // km 변환
+            count: weeklyActivities.length,
+            fullDate: `${format(weekStart, "yyyy.MM.dd")} ~ ${format(
+                weekEnd,
+                "MM.dd"
+            )}`,
+        };
+    });
+}
