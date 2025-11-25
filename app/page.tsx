@@ -1,67 +1,82 @@
-// app/page.tsx
+import { getStravaActivities } from "@/lib/strava-api";
+import { calculateACWR } from "@/lib/analytics";
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card";
+    findBestEffort,
+    calculateVDOT,
+    getTrainingPaces,
+} from "@/lib/formulas";
+import { ACWRCard } from "@/components/dashboard/acwr-card";
+import { VDOTCard } from "@/components/dashboard/vdot-card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Activity, Zap, Trophy, Calendar } from "lucide-react";
-import { getStravaActivities } from "@/lib/strava-api"; // API 모듈 임포트
+import { Trophy, Activity } from "lucide-react";
 
-// Helper: 미터 -> 킬로미터 변환 (소수점 1자리)
 const toKm = (meters: number) => (meters / 1000).toFixed(1);
 
 export default async function Dashboard() {
-    // 서버 사이드 데이터 패칭
-    // 에러 발생 시 Next.js의 error.tsx가 처리하지만, 여기선 간단히 빈 배열 처리 가능
+    // 1. 데이터 패칭
     let activities: any[] = [];
     try {
-        activities = await getStravaActivities(50); // 최근 50개 활동 요청
+        activities = await getStravaActivities(60);
     } catch (error) {
         console.error(error);
-        // 실제 운영 시 에러 UI 처리 필요
     }
 
-    // 간단한 통계 계산 (데모용)
-    const lastRun = activities[0]; // 가장 최근 활동
+    // 2. ACWR 계산
+    const acwrData = calculateACWR(activities);
+
+    // 3. VDOT 계산 (최근 6주 데이터 기준)
+    const recentActivities = activities.filter((a) => {
+        const diff =
+            (new Date().getTime() - new Date(a.start_date).getTime()) /
+            (1000 * 60 * 60 * 24);
+        return diff <= 42;
+    });
+
+    const best5kMin = findBestEffort(recentActivities);
+    const vdotScore = calculateVDOT(best5kMin);
+    const paces = getTrainingPaces(vdotScore);
+
+    // 통계용
     const totalDistance = activities.reduce(
         (acc, cur) => acc + cur.distance,
         0
     );
+    const lastRun = activities[0];
 
     return (
         <main className="min-h-screen bg-zinc-50/50 p-8">
+            {/* 헤더 섹션 */}
             <header className="mb-8 flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight text-zinc-900">
                         Personal Running Lab
                     </h1>
-                    <p className="text-zinc-500">
-                        Data-driven training insights.
+                    <p className="text-zinc-500 text-sm mt-1">
+                        데이터로 달리는 나만의 러닝 연구소
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
                     <Badge variant="outline">v1.0.0 Alpha</Badge>
-                    {activities.length > 0 ? (
-                        <Badge className="bg-emerald-600">
-                            Strava Connected
-                        </Badge>
-                    ) : (
-                        <Badge variant="destructive">Connection Error</Badge>
-                    )}
+                    <Badge className="bg-emerald-600 hover:bg-emerald-600">
+                        스트라바 연동됨
+                    </Badge>
                 </div>
             </header>
 
+            {/* 메인 그리드 */}
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                {/* ... (ACWR, VDOT 카드는 아직 로직 구현 전이므로 유지) ... */}
+                {/* 1. ACWR 카드 */}
+                <ACWRCard data={acwrData} />
 
-                {/* 3. Weekly Volume (Real Data 반영) */}
+                {/* 2. VDOT 카드 (테이블 포함 2칸 차지) */}
+                <VDOTCard vdot={vdotScore} paces={paces} />
+
+                {/* 3. 누적 거리 카드 */}
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">
-                            Total Volume (Loaded)
+                        <CardTitle className="text-sm font-bold text-zinc-700">
+                            누적 주행 거리
                         </CardTitle>
                         <Trophy className="h-4 w-4 text-zinc-500" />
                     </CardHeader>
@@ -70,73 +85,48 @@ export default async function Dashboard() {
                             {toKm(totalDistance)} km
                         </div>
                         <p className="text-xs text-muted-foreground mt-1">
-                            From last {activities.length} runs
+                            최근 {activities.length}회 활동 합계
                         </p>
                     </CardContent>
                 </Card>
 
-                {/* 4. Recent Run (Real Data 반영) */}
+                {/* 4. 최근 활동 카드 */}
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">
-                            Latest Run
+                        <CardTitle className="text-sm font-bold text-zinc-700">
+                            최근 활동
                         </CardTitle>
                         <Activity className="h-4 w-4 text-zinc-500" />
                     </CardHeader>
                     <CardContent>
                         {lastRun ? (
                             <>
-                                <div className="text-2xl font-bold">
+                                <div className="text-lg font-bold truncate">
                                     {lastRun.name}
                                 </div>
                                 <p className="text-xs text-muted-foreground mt-1">
                                     {toKm(lastRun.distance)}km •{" "}
                                     {new Date(
                                         lastRun.start_date
-                                    ).toLocaleDateString()}
+                                    ).toLocaleDateString("ko-KR")}
                                 </p>
                             </>
                         ) : (
                             <div className="text-sm text-muted-foreground">
-                                No recent runs found
+                                기록 없음
                             </div>
                         )}
                     </CardContent>
                 </Card>
             </div>
 
-            {/* Activity List for Debugging */}
-            <div className="mt-6">
-                <h2 className="text-lg font-semibold mb-4">
-                    Raw Activity Log (Debug)
-                </h2>
-                <div className="space-y-2">
-                    {activities.slice(0, 5).map((run) => (
-                        <Card
-                            key={run.id}
-                            className="p-4 flex justify-between items-center"
-                        >
-                            <div>
-                                <p className="font-bold">{run.name}</p>
-                                <p className="text-xs text-zinc-500">
-                                    {new Date(run.start_date).toLocaleString()}
-                                </p>
-                            </div>
-                            <div className="text-right">
-                                <p className="font-mono text-sm">
-                                    {toKm(run.distance)} km
-                                </p>
-                                <p className="text-xs text-zinc-500">
-                                    {run.average_heartrate
-                                        ? `${Math.round(
-                                              run.average_heartrate
-                                          )} bpm`
-                                        : "No HR"}
-                                </p>
-                            </div>
-                        </Card>
-                    ))}
-                </div>
+            {/* 디버그 섹션 (옵션) */}
+            <div className="mt-8 p-4 bg-zinc-100 rounded-lg">
+                <p className="text-xs font-mono text-zinc-500">
+                    [System Check] 데이터 로드: {activities.length}개. 단기
+                    부하(Acute): {acwrData.acuteLoad.toFixed(2)}km. 장기
+                    부하(Chronic): {acwrData.chronicLoad.toFixed(2)}km.
+                </p>
             </div>
         </main>
     );
