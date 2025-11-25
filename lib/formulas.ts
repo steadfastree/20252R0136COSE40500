@@ -166,3 +166,23 @@ export const findBestEffort = (activities: StravaActivity[]) => {
 
     return bestVDOT;
 };
+
+// 6. TRIMP 계산 (Banister's Impulse)
+export const calculateTRIMP = (
+    durationMinutes: number,
+    avgHr: number,
+    maxHr: number,
+    restHr: number
+): number => {
+    // 심박 데이터가 없거나 유효하지 않으면 0 반환
+    if (!avgHr || avgHr <= restHr) return 0;
+
+    // HR Reserve (심박 예비율) 계산
+    const hrReserve = (avgHr - restHr) / (maxHr - restHr);
+
+    // Banister 공식 적용 (남성 기준 상수 1.92 사용)
+    const trimp =
+        durationMinutes * hrReserve * 0.64 * Math.exp(1.92 * hrReserve);
+
+    return Math.round(trimp); // 정수로 반환
+};
