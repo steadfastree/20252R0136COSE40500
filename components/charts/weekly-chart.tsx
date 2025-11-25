@@ -35,8 +35,8 @@ export function WeeklyChart({ data }: WeeklyChartProps) {
                     <span className="font-bold text-emerald-600">40km</span>
                 </CardDescription>
             </CardHeader>
-            <CardContent className="pl-0">
-                <div className="h-[300px] w-full">
+            <CardContent className="pl-0 min-w-0">
+                <div className="h-[300px] w-full min-w-0">
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart
                             data={data}
