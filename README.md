@@ -1,36 +1,305 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+성능 추적, 부상 방지, 훈련 계획 최적화를 위한 데이터 기반 러닝 대시보드. Next.js 14+와 Strava API로 구축되었습니다.
 
-## Getting Started
+## ✨ 주요 기능
 
-First, run the development server:
+-   **실시간 훈련 지표**: 주간 주행 거리, 훈련 부하, 성능 추적
+-   **부상 방지**: ACWR (급성:만성 작업부하 비율) 모니터링
+-   **성능 분석**: VDOT 기반 훈련 속도 및 레이스 예측
+-   **훈련 캘린더**: 계획 대비 실제 운동 추적
+-   **1인 전용**: 안전한 토큰 관리가 가능한 개인 맞춤형 대시보드
+
+## 🚀 시작하기
+
+### 필수 조건
+
+-   Node.js 18 이상
+-   npm, yarn, pnpm 또는 bun
+-   Strava 개발자 계정
+
+### 설치 방법
+
+1. 저장소 클론
+2. 의존성 설치:
+
+```bash
+npm install
+# 또는
+yarn install
+# 또는
+pnpm install
+# 또는
+bun install
+```
+
+3. 환경 변수 설정 (`.env.local` 파일 생성):
+
+```env
+STRAVA_CLIENT_ID=your_client_id
+STRAVA_CLIENT_SECRET=your_client_secret
+STRAVA_REFRESH_TOKEN=your_refresh_token
+```
+
+4. 개발 서버 실행:
 
 ```bash
 npm run dev
-# or
+# 또는
 yarn dev
-# or
+# 또는
 pnpm dev
-# or
+# 또는
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+5. 브라우저에서 [http://localhost:3000](http://localhost:3000) 열기
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🛠 기술 스택
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+-   **프레임워크**: Next.js 14+ (App Router)
+-   **언어**: TypeScript
+-   **스타일링**: Tailwind CSS, shadcn/ui
+-   **데이터 페칭**: SWR/React Query
+-   **시각화**: Recharts
+-   **배포**: Vercel
+-   **데이터 소스**: Strava API v3
 
-## Learn More
+## 📊 핵심 지표
 
-To learn more about Next.js, take a look at the following resources:
+### ACWR (급성:만성 작업부하 비율)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+-   **급성 부하**: 최근 7일간 주행 거리 합계
+-   **만성 부하**: (최근 28일간 주행 거리 합계) / 4
+-   **비율**: 급성 / 만성
+    -   🟢 0.8-1.3: 최적
+    -   🟡 1.3-1.5: 주의 필요
+    -   🔴 >1.5: 부상 위험 높음
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### VDOT 계산기
 
-## Deploy on Vercel
+-   최근 최고 기록을 기반으로 체력 수준 자동 계산
+-   개인 맞춤형 훈련 속도 제공
+-   Riegel 공식을 사용한 레이스 예상 시간 계산
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### TRIMP (훈련 자극)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+-   심박수 데이터를 사용한 훈련 부하 정량화
+-   훈련 강도와 회복 균형 조정 지원
+
+## 📁 프로젝트 구조
+
+```
+/app
+  /api/strava        # Strava API 엔드포인트
+  /components        # 재사용 가능한 UI 컴포넌트
+  /lib               # 핵심 로직과 유틸리티
+  /public            # 정적 자산
+  /styles            # 전역 스타일
+  page.tsx           # 메인 대시보드
+```
+
+## 📅 개발 로드맵
+
+### 1단계: 핵심 기능
+
+-   [ ] Strava OAuth 연동
+-   [ ] 기본 대시보드 레이아웃
+-   [ ] 주간 주행 거리 추적
+-   [ ] ACWR 계산 및 시각화
+
+### 2단계: 성능 분석
+
+-   [ ] VDOT 계산기
+-   [ ] 훈련 속도 추천
+-   [ ] 레이스 예상 시간
+
+### 3단계: 훈련 계획
+
+-   [ ] 대화형 훈련 캘린더
+-   [ ] 계획 대비 실적 비교
+-   [ ] TRIMP 기반 부하 추적
+
+## 📝 라이선스
+
+이 프로젝트는 MIT 라이선스 하에 배포됩니다. 자세한 내용은 [LICENSE](LICENSE) 파일을 참조하세요.
+
+## 🙏 감사의 말
+
+-   포괄적인 API를 제공해 주신 Strava에 감사드립니다
+-   VDOT 방법론을 개발해 주신 Jack Daniels 박사님께 감사드립니다
+-   영감과 피드백을 주신 러닝 커뮤니티 여러분께 감사드립니다
+
+## 1. 개요
+
+-   **프로젝트명**: Personal Running Lab (PRL)
+-   **목적**: Strava 유료 구독 기능을 대체하고, 러너의 성장에 필수적인 훈련 지표(VDOT, ACWR, TRIMP)를 제공하는 **1인 전용 웹 대시보드** 구축
+-   **핵심 철학**: "감(Feeling)이 아닌 데이터(Data)에 기반한 체계적인 훈련과 부상 방지"
+-   **타겟 유저**: 개발자 본인 (Single User)
+
+## 2. 기술 스택
+
+-   **프레임워크**: Next.js 14+ (App Router)
+-   **언어**: TypeScript
+-   **스타일링**: Tailwind CSS, shadcn/ui (UI 컴포넌트)
+-   **상태 관리**: SWR 또는 React Query (데이터 캐싱 및 패칭)
+-   **시각화**: Recharts (차트 구현), date-fns (날짜 처리)
+-   **데이터 소스**: Strava API v3 (REST)
+-   **배포**: Vercel (Free Tier)
+-   **저장소**: 로컬 JSON 파일 (훈련 스케줄 관리), 인메모리/환경변수 (토큰 관리)
+
+## 3. 데이터 아키텍처 및 인증
+
+### 인증 전략 (Single User OAuth)
+
+이 앱은 다수 회원이 아닌 **단 한 명(나)**을 위해 작동하므로 복잡한 DB 세션 관리가 불필요합니다.
+
+1. **초기 설정**: 개발자가 로컬에서 최초 1회 인증을 통해 `Refresh Token`을 획득합니다.
+2. **환경 변수:** 획득한 `CLIENT_ID`, `CLIENT_SECRET`, `REFRESH_TOKEN`을 `.env.local` 및 Vercel 환경변수에 저장합니다.
+3. **Token Rotation (핵심):**
+    - 앱 실행 시(또는 API 호출 전), 서버 사이드에서 `Refresh Token`을 사용해 새로운 `Access Token`을 발급받습니다.
+    - 이 과정은 백그라운드에서 자동화되어야 하며, 사용자는 로그인 과정을 거칠 필요가 없습니다.
+
+## 4. 핵심 기능 명세
+
+1.  **Strava API:**
+    -   엔드포인트: `/athlete/activities`
+    -   필터링 조건: `type === 'Run'` (오직 달리기 데이터만 취급)
+2.  **Local Config (`/data`):**
+    -   `schedule.json`: 사용자가 수립한 훈련 계획 데이터.
+    -   `user-profile.json`: 최대 심박수(Max HR), 안정시 심박수(Rest HR) 등 상수 값.
+
+---
+
+## 4. 핵심 기능 명세 (Feature Specifications)
+
+### Phase 1: Dashboard (Status & Safety)
+
+직관적인 현재 상태 파악과 부상 방지 모니터링.
+
+1.  **주간 마일리지 차트 (Weekly Mileage)**
+    -   **UI:** 막대 그래프 (Bar Chart, 최근 12주).
+    -   **기능:** 주 단위 거리 합산 표시, 목표 거리(Goal Line) 대비 달성률 시각화.
+2.  **ACWR (Acute:Chronic Workload Ratio)**
+    -   **목적:** 부상 위험도 관리.
+    -   **로직:**
+        -   `Acute Load` = 최근 7일간의 주행 거리 합.
+        -   `Chronic Load` = 최근 28일간의 주행 거리 합 / 4.
+        -   `Ratio` = Acute / Chronic.
+    -   **UI:** Gauge Chart.
+        -   **Green (0.8 ~ 1.3):** 적정 (Sweet Spot).
+        -   **Yellow (1.3 ~ 1.5):** 주의 (Caution).
+        -   **Red (> 1.5):** 위험 (Danger).
+
+### Phase 2: The Lab (Performance & Insights)
+
+스트라바가 제공하지 않는 전문적인 분석 지표 제공.
+
+1.  **VDOT 계산기 (Auto-Calculation)**
+    -   **로직:** 최근 4주 활동 중 '최고의 퍼포먼스(Best Effort)'를 자동 추출하여 Jack Daniels VDOT 공식에 대입.
+    -   **출력:** 현재 나의 VDOT 점수 (예: 48).
+2.  **훈련 페이스 가이드 (Training Paces)**
+    -   **기능:** 산출된 VDOT 점수를 기반으로 5가지 훈련 페이스 자동 계산 및 표출.
+    -   **구성:** E(Easy), M(Marathon), T(Threshold), I(Interval), R(Repetition).
+3.  **대회 기록 예측 (Race Predictor)**
+    -   **로직:** Riegel's Formula 적용.
+    -   **출력:** 5k, 10k, Half, Full 예상 완주 시간.
+
+### Phase 3: Scheduler (Plan vs Actual)
+
+계획된 훈련과 실제 수행 여부를 비교.
+
+1.  **훈련 캘린더 (Training Calendar)**
+    -   **UI:** 월간 달력 (Month View).
+    -   **로직:** `schedule.json`의 날짜와 API의 활동 날짜를 매칭.
+    -   **상태 표시:**
+        -   ✅ **Success:** 계획 있음 & 수행 완료.
+        -   ⚠️ **Missed:** 계획 있음 & 수행 안 함.
+        -   🌟 **Bonus:** 계획 없음 & 수행 함.
+2.  **TRIMP (Training Impulse)**
+    -   **목적:** 스트라바의 'Relative Effort' 대체.
+    -   **로직:** 심박수 기반 훈련 부하 계산 (공식 참조).
+    -   **UI:** 활동 카드에 TRIMP 점수 표시.
+
+---
+
+## 5. 주요 알고리즘 및 공식 (Algorithms)
+
+### A. Riegel's Formula (기록 예측)
+
+```typescript
+// t1: 기준 기록(분), d1: 기준 거리, d2: 목표 거리
+const predictTime = (t1: number, d1: number, d2: number) => {
+    return t1 * Math.pow(d2 / d1, 1.06);
+};
+```
+
+### B. TRIMP (훈련 부하)
+
+```typescript
+// HRr (심박 예비율) = (AvgHR - RestHR) / (MaxHR - RestHR)
+// Duration: 운동 시간(분)
+const calculateTRIMP = (duration: number, hrReserve: number) => {
+    return duration * hrReserve * 0.64 * Math.exp(1.92 * hrReserve);
+};
+```
+
+### C. ACWR (부상 방지 비율)
+
+```typescript
+const acuteLoad = sumLast7DaysDistance;
+const chronicLoad = sumLast28DaysDistance / 4;
+const acwr = acuteLoad / chronicLoad;
+```
+
+---
+
+## 6. 개발 로드맵 (Development Roadmap)
+
+### Step 1: 환경 설정 및 인증 (Foundation)
+
+-   [ ] Next.js 프로젝트 생성 (Tailwind, TypeScript).
+-   [ ] Strava API Application 등록 및 Key 발급.
+-   [ ] **Auth Handler 구현:** `/api/auth/refresh` 라우트 생성 (토큰 갱신 로직).
+-   [ ] 기본 API Fetcher 구현 (Header에 Bearer Token 자동 삽입).
+
+### Step 2: 코어 로직 구현 (Logic)
+
+-   [ ] `utils/calculations.ts` 생성: VDOT, TRIMP, ACWR, Riegel 공식 구현.
+-   [ ] `utils/strava.ts` 생성: 활동 데이터 필터링(Run only), 데이터 가공 함수 구현.
+-   [ ] `data/schedule.json` 더미 데이터 구조 설계.
+
+### Step 3: UI 컴포넌트 개발 (Visualization)
+
+-   [ ] **Dashboard:** Recharts를 이용한 주간 마일리지, ACWR 게이지 컴포넌트.
+-   [ ] **The Lab:** VDOT 점수 표시 카드, 페이스 테이블 컴포넌트.
+-   [ ] **Calendar:** 달력 그리드 구현 및 데이터 매핑 로직.
+
+### Step 4: 통합 및 배포 (Integration)
+
+-   [ ] 메인 페이지(`page.tsx`) 조립.
+-   [ ] 반응형 디자인(Mobile) 점검.
+-   [ ] Vercel 배포 및 환경변수 설정.
+
+---
+
+## 7. 디렉토리 구조 제안 (Directory Structure)
+
+```bash
+/app
+  /api
+    /strava          # Strava API Proxy (토큰 갱신 포함)
+      route.ts
+  /components
+    /charts          # Recharts 컴포넌트
+    /dashboard       # 요약 카드, ACWR 게이지
+    /lab             # VDOT 계산기, 페이스 테이블
+    /calendar        # 훈련 캘린더
+  page.tsx           # 메인 대시보드
+/lib
+  strava-api.ts      # Fetcher, Auth Logic
+  formulas.ts        # VDOT, TRIMP, ACWR 공식
+  utils.ts           # 날짜 포맷팅 등
+/data
+  schedule.json      # 훈련 계획 (JSON 관리)
+  user-config.json   # 신체 정보 (HR Max 등)
+.env.local           # STRAVA_CLIENT_ID, SECRET, REFRESH_TOKEN
+```
