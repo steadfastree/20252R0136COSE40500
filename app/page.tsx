@@ -1,8 +1,4 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "./api/auth/[...nextauth]/route";
-import prisma from "@/lib/prisma";
-import AuthButton from "@/components/auth-button";
-
+import { createClient } from "@/utils/supabase/server";
 import { calculateACWR, getWeeklyStats } from "@/lib/analytics";
 import {
   findBestEffort,
@@ -46,9 +42,10 @@ async function getUserConfig() {
 }
 
 export default async function Dashboard() {
-  const session = await getServerSession(authOptions as any);
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
-  if (!session || !session.user) {
+  if (!user) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center bg-zinc-50/50 p-8">
         <div className="text-center">
@@ -59,7 +56,9 @@ export default async function Dashboard() {
             Connect your Strava account to get started.
           </p>
           <div className="mt-6">
-            <AuthButton />
+            <button className="bg-orange-500 text-white px-6 py-2 rounded-lg font-bold">
+              Strava로 시작하기 (준비 중)
+            </button>
           </div>
         </div>
       </main>
@@ -67,19 +66,14 @@ export default async function Dashboard() {
   }
 
   // --- Logged-in User Logic ---
+  // TODO: Supabase DB에서 활동 데이터를 가져오는 로직 구현 필요
+  const activitiesData: any[] = []; 
+  const userConfig = await getUserConfig();
 
-  // 1. 데이터 로드 (DB + User Config)
-  const [activitiesData, userConfig] = await Promise.all([
-    prisma.activity.findMany({
-      where: { userId: session.user.id },
-      orderBy: { start_date: "desc" },
-    }),
-    getUserConfig(),
-  ]);
   const activities = activitiesData.map((act) => ({
     ...act,
     id: Number(act.id),
-  })); // BigInt to Number
+  }));
 
   // 2. 데이터 분석 (Analytics)
   const acwrData = calculateACWR(activities);
@@ -111,16 +105,15 @@ export default async function Dashboard() {
       <header className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-zinc-900">
-            {session.user.name}'s Running Lab
+            {user.email?.split('@')[0]}'s Running Lab
           </h1>
           <p className="text-zinc-500 text-sm mt-1">
             데이터로 달리는 나만의 러닝 연구소
           </p>
         </div>
-        <AuthButton />
+        <div className="text-sm text-zinc-500">로그아웃 (준비 중)</div>
       </header>
 
-      {/* Rest of the dashboard remains the same... */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <ACWRCard data={acwrData} />
         <VDOTCard
