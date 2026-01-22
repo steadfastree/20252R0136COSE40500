@@ -18,7 +18,7 @@ The main philosophy behind this project is to empower all runners with data-driv
 ### Prerequisites
 
 -   Node.js 18 or higher
--   A package manager like npm, yarn, pnpm, or bun
+-   **Package Manager**: `pnpm` (Chosen for efficient disk usage via content-addressable storage, faster installation speeds, and strict dependency management to prevent phantom dependencies.)
 -   A Strava developer account
 -   A database (e.g., PostgreSQL, MySQL, or SQLite for development)
 
@@ -27,7 +27,7 @@ The main philosophy behind this project is to empower all runners with data-driv
 1.  **Clone the repository.**
 2.  **Install dependencies**:
     ```bash
-    npm install
+    pnpm install
     ```
 3.  **Set up environment variables**: Create a `.env.local` file. The `STRAVA_REFRESH_TOKEN` is no longer needed for the multi-user setup. You will also need to add your database connection string.
     ```env
@@ -63,10 +63,12 @@ The main philosophy behind this project is to empower all runners with data-driv
 
 -   **Framework**: Next.js 14+ (App Router)
 -   **Language**: TypeScript
--   **Authentication**: NextAuth.js
--   **Database ORM**: Prisma or Drizzle
--   **Styling**: Tailwind CSS, shadcn/ui
--   **Data Fetching**: SWR or React Query
+-   **Authentication**: Supabase Auth
+-   **Database**: Supabase (PostgreSQL)
+-   **Styling**: Tailwind CSS, Radix UI, shadcn/ui
+-   **Data Fetching & Caching**: TanStack Query v5 (React Query)
+-   **State Management**: Zustand
+-   **Data Grid**: AG Grid (Community Edition)
 -   **Visualization**: Recharts
 -   **Deployment**: Vercel
 -   **Data Source**: Strava API v3
@@ -78,28 +80,26 @@ The project follows a standard Next.js App Router structure:
 -   `app/`: Contains the application's pages and API routes.
 -   `components/`: Contains reusable UI components.
 -   `lib/`: Contains the core logic, utilities, and API interactions.
--   `prisma/` or `db/`: Contains database schema and migration files.
+-   `utils/`: Contains Supabase client setup.
 -   `public/`: Contains static assets.
 
 ### Authentication
 
-The application will use a standard multi-user OAuth 2.0 flow with NextAuth.js to handle Strava authentication.
+The application uses **Supabase Auth** to handle Strava OAuth authentication.
 
 1.  **User Login**: A new user clicks a "Connect with Strava" button.
-2.  **Authorization**: The user is redirected to Strava to authorize the application.
-3.  **Callback**: After authorization, Strava redirects the user back to the application with an authorization code.
-4.  **Token Exchange**: The application server exchanges the code for an `access_token` and a `refresh_token`.
-5.  **Session & Storage**: The user's profile and tokens are securely stored in the database. A session is created for the user. The `refresh_token` will be used to obtain new `access_token`s in the background.
+2.  **Authorization**: The user is redirected to Strava via Supabase Auth.
+3.  **Callback**: After authorization, Strava redirects back, and Supabase handles session creation.
+4.  **Token Management**: Supabase manages the session tokens. Strava `access_token` and `refresh_token` are stored securely by Supabase.
 
 ## Development Roadmap
 
-### Phase 1: Foundation & Multi-User Authentication
+### Phase 1: Foundation & Authentication
 
--   [ ] **Project Setup**: Integrate Prisma/Drizzle ORM and set up the database schema for Users, Accounts, and Activities.
--   [ ] **Implement NextAuth.js**: Configure the Strava Provider for OAuth 2.0 authentication.
--   [ ] **Create Login Flow**: Build the UI for users to sign in and connect their Strava account.
--   [ ] **Data Sync Service**: Develop a robust service to fetch and store a user's historical Strava data upon their first login.
--   [ ] **Token Management**: Ensure the Strava `refresh_token` is used correctly to keep the `access_token` fresh for API calls.
+-   [ ] **Project Setup**: Replace Prisma/NextAuth with Supabase client setup (`@supabase/supabase-js`, `@supabase/ssr`).
+-   [ ] **Supabase Config**: Configure Strava Provider in Supabase Dashboard.
+-   [ ] **Create Login Flow**: Build the UI for users to sign in using Supabase Auth.
+-   [ ] **Data Sync Service**: Develop a service to fetch user's Strava data using the tokens stored in Supabase.
 
 ### Phase 2: Core Features & Dynamic Planning
 
@@ -114,4 +114,19 @@ The application will use a standard multi-user OAuth 2.0 flow with NextAuth.js t
 -   [ ] **Historical Analysis**: Create new charts and views for users to analyze their long-term progress and trends.
 -   [ ] **Refine UI/UX**: Improve dashboard layout, component design, and overall user experience based on the new features.
 -   [ ] **Add Onboarding**: Create a simple onboarding flow for new users to explain the key features.
--   [ ] **Testing**: Implement unit and integration tests for critical components and logic.
+### Testing
+
+-   Implement unit and integration tests for critical components and logic.
+
+## Development Workflow
+
+This project follows a systematic development workflow managed within the `.gemini/` directory. Every significant feature or change must follow this sequence:
+
+1.  **PRD (Product Requirements Document)**: Define "What" and "Why" in `.gemini/prds/`. Focus on user value and functional requirements.
+2.  **Spec (Technical Specification)**: Define "How" in `.gemini/specs/`. Detail data models, API interfaces, and architectural decisions.
+3.  **Plan (Implementation Plan)**: Break down the work into actionable steps in `.gemini/plans/`. Define the sequence of tasks and feature breakdown.
+4.  **Implementation**: Execute the tasks based on the plan, followed by verification (tests and standards).
+    -   **Atomic Commits**: After completing each individual task (as defined in the Plan), the agent must propose a git commit to the user.
+
+All tools and custom commands used during development are documented in `.gemini/commands/`.
+
