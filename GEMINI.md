@@ -1,136 +1,54 @@
-# Project Overview
+# Personal Running Lab (PRL)
 
-This is a data-driven running platform that helps users connect their Strava account to track performance, prevent injuries, and optimize training. It's built with Next.js 14+ and the Strava API.
+데이터 기반 러닝 플랫폼으로, Strava 오픈 API를 활용하여 유료 서비스 수준의 데이터 분석과 훈련 가이드를 제공합니다.
 
-The main philosophy behind this project is to empower all runners with data-driven training and injury prevention, moving away from relying on subjective feelings. The target user is any runner with a Strava account who wants a deeper understanding of their training data.
+## 프로젝트 철학
+- **데이터 중심**: 주관적인 느낌이 아닌 객관적인 데이터로 성장을 증명합니다.
+- **민주화된 인사이트**: Strava의 유료 기능을 쓰지 않고도 오픈 API만으로 충분히 가치 있는 분석을 제공합니다.
+- **에이전틱 개발**: 최신 AI 에이전트 기술을 활용한 체계적인 소프트웨어 엔지니어링 연습의 장입니다.
 
-## Key Features
+## 핵심 기능 (Core Features)
+1. **Strava 데이터 허브**: 내 러닝 데이터를 자동으로 동기화하고 안전하게 보관합니다.
+2. **퍼포먼스 인사이트**:
+   - **ACWR (Acute:Chronic Workload Ratio)**: 부상 방지를 위한 훈련 부하 관리.
+   - **VDOT 계산기**: 현재 기록 기반의 실력 진단 및 적정 훈련 페이스 추천.
+   - **기록 예측**: 현재 훈련 추세를 바탕으로 5K, 10K, 하프, 풀 마라톤 예상 기록 산출.
+3. **스마트 훈련 플래너**:
+   - **캘린더 뷰**: 훈련 계획을 수립하고 한눈에 관리.
+   - **Plan vs. Actual**: 계획한 훈련과 실제 수행 기록을 매핑하여 성취도 분석.
 
--   **Strava OAuth Integration**: Securely connect your Strava account to import and analyze your running data.
--   **Real-time Training Metrics**: Tracks weekly mileage, training load, and performance.
--   **Injury Prevention**: Monitors the Acute:Chronic Workload Ratio (ACWR).
--   **Performance Analysis**: Provides VDOT-based training paces and race predictions.
--   **Dynamic Training Planner**: Create, visualize, and manage your own training schedule.
--   **Individualized Dashboard**: A personalized dashboard for every user.
+## 기술 스택 (Tech Stack)
+- **Framework**: Next.js 14+ (App Router)
+- **Authentication**: Supabase Auth (Strava OAuth)
+- **Database**: Supabase (PostgreSQL)
+- **Data Fetching**: TanStack Query v5
+- **State Management**: Zustand
+- **UI Components**: Radix UI, Tailwind CSS, shadcn/ui, AG Grid (Community)
+- **Visualization**: Recharts
 
-## Building and Running the Project
+## 개발 로드맵 (Roadmap)
 
-### Prerequisites
+### Phase 1: 기반 및 데이터 허브 (Foundation & Data Hub)
+- [x] **PRD-001**: 기술 스택 마이그레이션 (pnpm, Supabase, Query 설정).
+- [ ] **PRD-002**: Strava 연동 및 데이터 동기화 파이프라인 구축.
 
--   Node.js 18 or higher
--   **Package Manager**: `pnpm` (Chosen for efficient disk usage via content-addressable storage, faster installation speeds, and strict dependency management to prevent phantom dependencies.)
--   A Strava developer account
--   A database (e.g., PostgreSQL, MySQL, or SQLite for development)
+### Phase 2: 분석 및 대시보드 (Core Analytics)
+- [ ] **PRD-003**: 훈련 부하(ACWR) 및 퍼포먼스(VDOT) 분석 엔진.
+- [ ] **PRD-004**: 통합 대시보드 및 활동 로그 (AG Grid).
 
-### Setup and Execution
+### Phase 3: 훈련 플래닝 (Smart Planning)
+- [ ] **PRD-005**: 훈련 캘린더 및 일정 관리.
+- [ ] **PRD-006**: 계획 대비 성취도 분석 (Plan vs. Actual).
 
-1.  **Clone the repository.**
-2.  **Install dependencies**:
-    ```bash
-    pnpm install
-    ```
-3.  **Set up environment variables**: Create a `.env.local` file. The `STRAVA_REFRESH_TOKEN` is no longer needed for the multi-user setup. You will also need to add your database connection string.
-    ```env
-    STRAVA_CLIENT_ID=your_client_id
-    STRAVA_CLIENT_SECRET=your_client_secret
-    DATABASE_URL=your_database_connection_string
-    NEXTAUTH_SECRET=a_random_secret_string_for_session_encryption
-    ```
-4.  **Run the development server**:
-    ```bash
-    npm run dev
-    ```
-5.  Open your browser and navigate to `http://localhost:3000`.
+## 개발 워크플로우 (Development Workflow)
+이 프로젝트는 `.gemini/` 폴더 내의 문서를 기반으로 체계적으로 진행됩니다.
 
-### Other Commands
+1. **PRD (Product Requirements Document)**: `.gemini/prds/` - "무엇을, 왜" 만드는지 정의.
+2. **Spec (Technical Specification)**: `.gemini/specs/` - "어떻게" 구현할지 기술적으로 설계.
+3. **Plan (Implementation Plan)**: `.gemini/plans/` - 구체적인 작업 순서(Task) 정의 및 체크.
+4. **Implementation**: 실제 코드 작성 및 검증.
 
--   **Build for production**:
-    ```bash
-    npm run build
-    ```
--   **Start the production server**:
-    ```bash
-    npm run start
-    ```
--   **Run the linter**:
-    ```bash
-    npm run lint
-    ```
-
-## Development Conventions
-
-### Tech Stack
-
--   **Framework**: Next.js 14+ (App Router)
--   **Language**: TypeScript
--   **Authentication**: Supabase Auth
--   **Database**: Supabase (PostgreSQL)
--   **Styling**: Tailwind CSS, Radix UI, shadcn/ui
--   **Data Fetching & Caching**: TanStack Query v5 (React Query)
--   **State Management**: Zustand
--   **Data Grid**: AG Grid (Community Edition)
--   **Visualization**: Recharts
--   **Deployment**: Vercel
--   **Data Source**: Strava API v3
-
-### Project Structure
-
-The project follows a standard Next.js App Router structure:
-
--   `app/`: Contains the application's pages and API routes.
--   `components/`: Contains reusable UI components.
--   `lib/`: Contains the core logic, utilities, and API interactions.
--   `utils/`: Contains Supabase client setup.
--   `public/`: Contains static assets.
-
-### Authentication
-
-The application uses **Supabase Auth** to handle Strava OAuth authentication.
-
-1.  **User Login**: A new user clicks a "Connect with Strava" button.
-2.  **Authorization**: The user is redirected to Strava via Supabase Auth.
-3.  **Callback**: After authorization, Strava redirects back, and Supabase handles session creation.
-4.  **Token Management**: Supabase manages the session tokens. Strava `access_token` and `refresh_token` are stored securely by Supabase.
-
-## Development Roadmap
-
-### Phase 1: Foundation & Authentication
-
--   [ ] **Project Setup**: Replace Prisma/NextAuth with Supabase client setup (`@supabase/supabase-js`, `@supabase/ssr`).
--   [ ] **Supabase Config**: Configure Strava Provider in Supabase Dashboard.
--   [ ] **Create Login Flow**: Build the UI for users to sign in using Supabase Auth.
--   [ ] **Data Sync Service**: Develop a service to fetch user's Strava data using the tokens stored in Supabase.
-
-### Phase 2: Core Features & Dynamic Planning
-
--   [ ] **Adapt Analytics**: Refactor existing analytics logic (`VDOT`, `ACWR`) to work with data from the database for the logged-in user.
--   [ ] **Build Dynamic Scheduler UI**: Create an interactive calendar interface where users can add, edit, and delete planned workouts.
--   [ ] **Scheduler Backend**: Implement API routes to handle CRUD operations for training plans, storing them in the database.
--   [ ] **"Plan vs. Actual" Logic**: On the calendar, visually distinguish between planned workouts, completed workouts (from Strava), and missed workouts.
-
-### Phase 3: Advanced Insights & UX Polish
-
--   [ ] **Expand Metrics**: Introduce more advanced running metrics (e.g., TRIMP, training load balance).
--   [ ] **Historical Analysis**: Create new charts and views for users to analyze their long-term progress and trends.
--   [ ] **Refine UI/UX**: Improve dashboard layout, component design, and overall user experience based on the new features.
--   [ ] **Add Onboarding**: Create a simple onboarding flow for new users to explain the key features.
-### Testing
-
--   Implement unit and integration tests for critical components and logic.
-
-## Development Workflow
-
-This project follows a systematic development workflow managed within the `.gemini/` directory. Every significant feature or change must follow this sequence:
-
-1.  **PRD (Product Requirements Document)**: Define "What" and "Why" in `.gemini/prds/`. Focus on user value and functional requirements.
-2.  **Spec (Technical Specification)**: Define "How" in `.gemini/specs/`. Detail data models, API interfaces, and architectural decisions.
-3.  **Plan (Implementation Plan)**: Break down the work into actionable steps in `.gemini/plans/`. Define the sequence of tasks and feature breakdown.
-4.  **Implementation**: Execute the tasks based on the plan, followed by verification (tests and standards).
-    -   **Atomic Commits**: After completing each individual task (as defined in the Plan), the agent must propose a git commit to the user.
-
-### Language & Communication
-All documentation within `GEMINI.md` and the `.gemini/` directory (PRDs, Specs, Plans, Commands) must be written in **Korean**.
-Additionally, **all interactions with the user (chat responses)** must be conducted in **Korean** to ensure clear understanding.
-
-All tools and custom commands used during development are documented in `.gemini/commands/`.
-
+### 규칙
+- **한글 문서화**: 모든 문서는 사용자의 이해를 돕기 위해 한글로 작성합니다.
+- **Atomic Commits**: 각 작업 단위(Task) 완료 시마다 커밋을 제안합니다.
+- **Plan Tracking**: 작업 완료 시 즉시 Plan 문서의 체크박스를 업데이트합니다.
