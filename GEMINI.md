@@ -128,8 +128,9 @@ This project follows a systematic development workflow managed within the `.gemi
 4.  **Implementation**: Execute the tasks based on the plan, followed by verification (tests and standards).
     -   **Atomic Commits**: After completing each individual task (as defined in the Plan), the agent must propose a git commit to the user.
 
-### Documentation Language
-All documentation within `GEMINI.md` and the `.gemini/` directory (PRDs, Specs, Plans, Commands) must be written in **Korean** to ensure clear understanding for the user.
+### Language & Communication
+All documentation within `GEMINI.md` and the `.gemini/` directory (PRDs, Specs, Plans, Commands) must be written in **Korean**.
+Additionally, **all interactions with the user (chat responses)** must be conducted in **Korean** to ensure clear understanding.
 
 All tools and custom commands used during development are documented in `.gemini/commands/`.
 
