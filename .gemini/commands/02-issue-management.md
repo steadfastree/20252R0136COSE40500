@@ -4,13 +4,37 @@
 Plan 문서에 정의된 Task들을 실제 작업 가능한 GitHub Issue로 변환하여 추적 가능하게 만듭니다.
 
 ## 1. Issue 생성 자동화 (Plan to Issue)
-Plan 문서의 체크박스(`- [ ]`) 항목을 `gh` CLI를 사용하여 이슈로 등록합니다.
+Plan 문서의 체크박스(`- [ ]`) 항목을 `gh` CLI를 사용하여 이슈로 등록합니다. **반드시 아래의 상세 템플릿을 준수해야 합니다.**
 
-### 명령어 예시
+### 1.1 상세 이슈 템플릿 (Self-Sufficient Issue Template)
+이슈 본문만 보고도 작업을 수행할 수 있도록 맥락을 제공해야 합니다. 의존성을 명확히 하여 작업 순서를 강제합니다.
+
+```markdown
+## 🎯 목표 (Goal)
+[PRD-XXX] {Task에 대한 간략한 설명}
+
+## 📋 상세 작업 (Tasks)
+- [ ] {구체적인 작업 1} (예: `supabase migration new` 실행)
+- [ ] {구체적인 작업 2} (예: Spec 문서 2.1항목의 테이블 스키마 작성)
+
+## ✅ 완료 조건 (Definition of Done)
+1. {검증 가능한 결과물 1} (예: 마이그레이션 파일 생성됨)
+2. {검증 가능한 결과물 2} (예: `pnpm build` 성공)
+
+## 🔗 의존성 (Dependencies)
+- **Preceded By**: #{이전_이슈_번호} (이 이슈가 닫혀야 진행 가능)
+- **Followed By**: #{다음_이슈_번호} (이 이슈가 닫히면 진행 가능)
+
+## 🔗 참고 문서 (References)
+- Spec: `.gemini/specs/prdXXX-spec.md`
+- Plan: `.gemini/plans/prdXXX-plan.md`
+```
+
+### 1.2 명령어 예시
 ```bash
 gh issue create \
-  --title "[PRD-002] Task 1.1: 마이그레이션 파일 생성" \
-  --body "상세 내용은 .gemini/plans/prd002-data-hub-plan.md 참조" \
+  --title "[PRD-002] DB: Create migration for profiles" \
+  --body-file .gemini/tmp/issue_body.md \
   --label "domain:backend" \
   --label "priority:high"
 ```

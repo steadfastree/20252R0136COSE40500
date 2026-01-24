@@ -1,4 +1,4 @@
-# Plan: 대시보드 UI 구현 실행 계획
+# Plan: 대시보드 구현 실행 계획
 
 ## Metadata
 - **Related Spec**: Spec-prd004
@@ -6,16 +6,17 @@
 
 ## 작업 목록 (Tasks)
 
-### 1. 컴포넌트 구현 (UI)
-- [ ] **Task 1.1**: KPI 카드 및 레이아웃 스켈레톤 구현.
-- [ ] **Task 1.2**: Recharts를 이용한 메인 차트 및 효율성 차트 구현.
-- [ ] **Task 1.3**: AG Grid 설치 및 기본 테이블 구현.
+### 1. UI 컴포넌트 개발
+- [ ] **Task 1.1**: KPI 카드 컴포넌트 구현 (`kpi-card.tsx`).
+- [ ] **Task 1.2**: 훈련 부하 차트 구현 (`load-chart.tsx`).
+    - Mock 데이터를 사용하여 렌더링 확인.
+- [ ] **Task 1.3**: AG Grid 래퍼 컴포넌트 구현.
 
-### 2. 상태 및 데이터 연동
-- [ ] **Task 2.1**: `use-dashboard-store` Zustand 스토어 구현.
-- [ ] **Task 2.2**: 대시보드용 데이터 Fetching 서버 액션 구현 (`getDashboardData`).
-    - DB 조회 -> 분석 엔진 계산 -> 결과 반환.
+### 2. 데이터 연동
+- [ ] **Task 2.1**: 대시보드용 서버 액션 구현 (`actions/dashboard.ts`).
+- [ ] **Task 2.2**: 메인 페이지(`app/page.tsx`)에 실제 데이터 바인딩.
+    - `Promise.all`로 데이터 Fetching 병렬 처리.
 
-### 3. 통합
-- [ ] **Task 3.1**: `app/page.tsx` (또는 `app/dashboard/page.tsx`)에 컴포넌트 조립.
-- [ ] **Task 3.2**: 반응형 디자인 확인 (Mobile/Desktop).
+### 3. 반응형 및 상태 처리
+- [ ] **Task 3.1**: 모바일 뷰 최적화 (Grid 컬럼 숨김 처리 등).
+- [ ] **Task 3.2**: 로딩 상태(Suspense/Skeleton) 적용.

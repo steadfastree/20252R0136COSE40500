@@ -1,29 +1,30 @@
-# Spec: 계획 대비 성취도 분석 (Plan vs. Actual)
+# Spec: 성취도 분석 로직 (Compliance)
 
 ## Metadata
 - **Related PRD**: PRD-006
 - **Status**: Draft
-- **Depends On**: PRD-005 (Plans), PRD-002 (Activities)
+- **Depends On**: PRD-002, PRD-005
 
-## 1. 개요
-계획(Plan)과 실적(Activity)을 매핑하여 성취도를 평가하는 로직 설계입니다.
+## 1. 알고리즘 구현 (`lib/analytics/compliance.ts`)
 
-## 2. 매칭 알고리즘 (`lib/analytics/compliance.ts`)
-*   **Input**: `Plan[]`, `Activity[]`
-*   **Logic**:
-    1.  날짜(`YYYY-MM-DD`)를 키(Key)로 하는 Map 생성.
-    2.  같은 날짜의 Plan과 Activity를 비교.
-    3.  오차 범위(Tolerance) ±10% 이내면 `Success`, ±20% 이내면 `Good`, 그 외 `Fail`.
-    4.  계획은 없는데 활동이 있으면 `Unplanned`.
+```typescript
+type Grade = 'Perfect' | 'Good' | 'Bad' | 'Missed' | 'Unplanned';
 
-## 3. UI 표현
-*   **캘린더**: 날짜 셀 배경색 또는 테두리 색으로 상태 표시.
-    *   초록: Perfect
-    *   노랑: Good
-    *   빨강: Missed
-    *   회색: Unplanned
-*   **툴팁**: 마우스 오버 시 "계획: 10km / 실제: 9.8km (98%)" 표시.
+export function evaluateCompliance(plan: Plan, activity?: Activity): Grade {
+  if (!activity) return 'Missed';
+  
+  const distDiff = Math.abs(plan.targetDistance - activity.distance / 1000);
+  const distError = distDiff / plan.targetDistance;
 
-## 4. 데이터 저장 필요성 검토
-*   매번 계산할 것인가, DB에 저장할 것인가?
-    *   데이터 양이 많지 않으므로 클라이언트(또는 서버 액션)에서 **On-the-fly 계산**이 유리함. DB 스키마 변경 최소화.
+  if (distError <= 0.05) return 'Perfect';
+  if (distError <= 0.15) return 'Good';
+  return 'Bad';
+}
+```
+
+## 2. 데이터 흐름
+- 별도의 DB 저장 없이, **클라이언트(또는 서버 컴포넌트)에서 런타임에 계산**합니다.
+- 이유: 성취도 기준이 바뀌거나, 계획/활동이 수정되면 즉시 재계산되어야 하므로 DB 저장은 비효율적.
+
+## 3. UI 적용
+- `PlanItem` 컴포넌트에 `compliance` prop을 추가하여 스타일링 처리.
